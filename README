@@ -1,0 +1,4 @@
+gctrl: a simple GUI for grbl
+
+A simple Processing <http://processing.org/> sketch that acts as an
+interface to grbl <http://dank.bengler.no/-/page/show/5470_grbl>.
