@@ -1,6 +1,15 @@
+import javax.swing.JOptionPane;
 import processing.serial.*;
 
 Serial port = null;
+
+// select and modify the appropriate line for your operating system
+// leave as null to use interactive port (press 'p' in the program)
+String portname = null;
+//String portname = Serial.list()[0]; // Mac OS X
+//String portname = "/dev/ttyUSB0"; // Linux
+//String portname = "COM6"; // Windows
+
 boolean streaming = false;
 float speed = 0.001;
 String[] gcode;
@@ -8,20 +17,33 @@ int i = 0;
 
 void openSerialPort()
 {
+  if (portname == null) return;
   if (port != null) port.stop();
   
-  // select and modify the appropriate line for your operating system
-  port = new Serial(this, Serial.list()[0], 9600); // Mac OS X
-  //port = new Serial(this, "/dev/ttyUSB0", 9600); // Linux
-  //port = new Serial(this, "COM6", 9600); // Windows  s
-
+  port = new Serial(this, portname, 9600);
+  
   port.bufferUntil('\n');
+}
+
+void selectSerialPort()
+{
+  String result = (String) JOptionPane.showInputDialog(this,
+    "Select the serial port that corresponds to your Arduino board.",
+    "Select serial port",
+    JOptionPane.PLAIN_MESSAGE,
+    null,
+    Serial.list(),
+    0);
+    
+  if (result != null) {
+    portname = result;
+    openSerialPort();
+  }
 }
 
 void setup()
 {
   size(500, 250);
-  println(Serial.list());
   openSerialPort();
 }
 
@@ -29,19 +51,21 @@ void draw()
 {
   background(0);  
   fill(255);
-  int y = 12, dy = 12;
-  text("current jog speed: " + speed + " inches per step", 0, y); y += dy;
-  y += dy;
-  text("INSTRUCTIONS", 0, y); y += dy;
-  text("1: set speed to 0.001 inches (1 mil) per jog", 0, y); y += dy;
-  text("2: set speed to 0.010 inches (10 mil) per jog", 0, y); y += dy;
-  text("3: set speed to 0.100 inches (100 mil) per jog", 0, y); y += dy;
-  text("arrow keys: jog in x-y plane", 0, y); y += dy;
-  text("page up & page down: jog in z axis", 0, y); y += dy;
-  text("h: go home", 0, y); y += dy;
-  text("0: zero machine (set home to the current location)", 0, y); y += dy;
-  text("g: stream a g-code file", 0, y); y += dy;
-  text("x: stop streaming g-code (this is NOT immediate)", 0, y); y += dy;
+  int y = 24, dy = 12;
+  text("INSTRUCTIONS", 12, y); y += dy;
+  text("p: select serial port", 12, y); y += dy;
+  text("1: set speed to 0.001 inches (1 mil) per jog", 12, y); y += dy;
+  text("2: set speed to 0.010 inches (10 mil) per jog", 12, y); y += dy;
+  text("3: set speed to 0.100 inches (100 mil) per jog", 12, y); y += dy;
+  text("arrow keys: jog in x-y plane", 12, y); y += dy;
+  text("page up & page down: jog in z axis", 12, y); y += dy;
+  text("h: go home", 12, y); y += dy;
+  text("0: zero machine (set home to the current location)", 12, y); y += dy;
+  text("g: stream a g-code file", 12, y); y += dy;
+  text("x: stop streaming g-code (this is NOT immediate)", 12, y); y += dy;
+  y = height - dy;
+  text("current jog speed: " + speed + " inches per step", 12, y); y -= dy;
+  text("current serial port: " + portname, 12, y); y -= dy;
 }
 
 void keyPressed()
@@ -59,6 +83,7 @@ void keyPressed()
     if (keyCode == KeyEvent.VK_PAGE_DOWN) port.write("G91\nG20\nG00 X0.000 Y0.000 Z-" + speed + "\n");
     if (key == 'h') port.write("G90\nG20\nG00 X0.000 Y0.000 Z0.000\n");
     if (key == '0') openSerialPort();
+    if (key == 'p') selectSerialPort();
   }
   
   if (!streaming && key == 'g') {
@@ -96,7 +121,7 @@ void stream()
 void serialEvent(Serial p)
 {
   String s = p.readStringUntil('\n');
-  println(s);
+  println(s.trim());
   
   if (s.trim().startsWith("ok")) stream();
   if (s.trim().startsWith("error")) stream(); // XXX: really?
