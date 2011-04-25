@@ -76,6 +76,8 @@ void keyPressed()
 
 void stream()
 {
+  if (!streaming) return;
+  
   while (true) {
     if (i == gcode.length) {
       streaming = false;
@@ -96,8 +98,7 @@ void serialEvent(Serial p)
   String s = p.readStringUntil('\n');
   println(s);
   
-  if (streaming && s.trim().startsWith("ok")) {
-    stream();
-  }
+  if (s.trim().startsWith("ok")) stream();
+  if (s.trim().startsWith("error")) stream(); // XXX: really?
 }
 
