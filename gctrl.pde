@@ -76,9 +76,14 @@ void keyPressed()
 
 void stream()
 {
-  if (i == gcode.length) {
-    streaming = false;
-    return;
+  while (true) {
+    if (i == gcode.length) {
+      streaming = false;
+      return;
+    }
+    
+    if (gcode[i].trim().length() == 0) i++;
+    else break;
   }
   
   println(gcode[i]);
