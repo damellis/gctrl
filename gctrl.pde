@@ -1,3 +1,4 @@
+import java.awt.event.KeyEvent;
 import javax.swing.JOptionPane;
 import processing.serial.*;
 
@@ -59,6 +60,7 @@ void draw()
   text("3: set speed to 0.100 inches (100 mil) per jog", 12, y); y += dy;
   text("arrow keys: jog in x-y plane", 12, y); y += dy;
   text("page up & page down: jog in z axis", 12, y); y += dy;
+  text("$: display grbl settings", 12, y); y+= dy;
   text("h: go home", 12, y); y += dy;
   text("0: zero machine (set home to the current location)", 12, y); y += dy;
   text("g: stream a g-code file", 12, y); y += dy;
@@ -82,21 +84,36 @@ void keyPressed()
     if (keyCode == KeyEvent.VK_PAGE_UP) port.write("G91\nG20\nG00 X0.000 Y0.000 Z" + speed + "\n");
     if (keyCode == KeyEvent.VK_PAGE_DOWN) port.write("G91\nG20\nG00 X0.000 Y0.000 Z-" + speed + "\n");
     if (key == 'h') port.write("G90\nG20\nG00 X0.000 Y0.000 Z0.000\n");
+    if (key == 'v') port.write("$0=75\n$1=74\n$2=75\n");
+    //if (key == 'v') port.write("$0=100\n$1=74\n$2=75\n");
+    if (key == 's') port.write("$3=10\n");
+    if (key == 'e') port.write("$16=1\n");
+    if (key == 'd') port.write("$16=0\n");
     if (key == '0') openSerialPort();
     if (key == 'p') selectSerialPort();
+    if (key == '$') port.write("$$\n");
   }
   
   if (!streaming && key == 'g') {
     gcode = null; i = 0;
-    String file = selectInput();
-    if (file == null) return;
-    gcode = loadStrings(file);
+    File file = null; 
+    println("Loading file...");
+    selectInput("Select a file to process:", "fileSelected", file);
+  }
+  
+  if (key == 'x') streaming = false;
+}
+
+void fileSelected(File selection) {
+  if (selection == null) {
+    println("Window was closed or the user hit cancel.");
+  } else {
+    println("User selected " + selection.getAbsolutePath());
+    gcode = loadStrings(selection.getAbsolutePath());
     if (gcode == null) return;
     streaming = true;
     stream();
   }
-  
-  if (key == 'x') streaming = false;
 }
 
 void stream()
