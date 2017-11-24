@@ -28,7 +28,7 @@ void openSerialPort()
 
 void selectSerialPort()
 {
-  String result = (String) JOptionPane.showInputDialog(this,
+  String result = (String) JOptionPane.showInputDialog(frame,
     "Select the serial port that corresponds to your Arduino board.",
     "Select serial port",
     JOptionPane.PLAIN_MESSAGE,
